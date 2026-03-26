@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoolChem Pro — Circupool RJ45 · Pebble · 15,000 gal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #080f1e;
+  --deep:    #0d1a30;
+  --card:    #111e35;
+  --border:  #1e3050;
+  --teal:    #0fb5a8;
+  --teal2:   #06d6c7;
+  --blue:    #3b82f6;
+  --amber:   #f5a623;
+  --red:     #f04155;
+  --green:   #10d48e;
+  --yellow:  #fbbf24;
+  --text:    #e8f0fe;
+  --muted:   #6b85a8;
+  --mono:    'Space Mono', monospace;
+  --sans:    'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(15,181,168,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,181,168,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+.app-wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+
+/* Header */
+.header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 28px 0 32px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+}
+.header-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--teal), var(--blue));
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(15,181,168,.35);
+}
+.header-title { font-size: clamp(20px,4vw,28px); font-weight: 700; letter-spacing: -.5px; }
+.header-sub { font-size: 13px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+.header-badge {
+  margin-left: auto;
+  background: rgba(15,181,168,.12);
+  border: 1px solid rgba(15,181,168,.3);
+  color: var(--teal2);
+  font-family: var(--mono); font-size: 11px;
+  padding: 5px 10px; border-radius: 6px; white-space: nowrap;
+}
+
+/* Progress */
+.progress-wrap { margin-bottom: 36px; }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted); margin-bottom: 10px;
+  font-family: var(--mono);
+}
+.progress-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
+  border-radius: 99px;
+  transition: width .4s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 10px rgba(15,181,168,.5);
+}
+.steps-dots { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all .3s; }
+.step-dot.done { background: var(--teal); }
+.step-dot.active { background: var(--teal2); transform: scale(1.4); box-shadow: 0 0 8px var(--teal); }
+
+/* Wizard card */
+.wizard-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  animation: fadeUp .35s ease;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.step-number { font-family: var(--mono); font-size: 12px; color: var(--teal); letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase; }
+.step-es { font-size: clamp(22px,4vw,30px); font-weight: 700; line-height: 1.2; letter-spacing: -.4px; }
+.step-en { font-size: 15px; color: var(--muted); margin-top: 4px; }
+.step-abbr {
+  display: inline-block;
+  background: rgba(15,181,168,.15); color: var(--teal2);
+  font-family: var(--mono); font-size: 12px;
+  padding: 3px 10px; border-radius: 5px; margin-top: 8px;
+}
+.step-desc {
+  margin-top: 16px; font-size: 14px; color: var(--muted); line-height: 1.6;
+  border-left: 2px solid var(--border); padding-left: 14px;
+}
+.step-range {
+  margin-top: 14px;
+  background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.25);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 13px; font-family: var(--mono); color: #93c5fd;
+}
+.step-range span { color: var(--text); font-weight: 700; }
+
+/* Input */
+.input-wrap { margin-top: 28px; position: relative; }
+.step-input {
+  width: 100%;
+  background: var(--deep); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: var(--mono); font-size: 28px; font-weight: 700;
+  padding: 20px 100px 20px 24px;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+  -moz-appearance: textfield;
+}
+.step-input::-webkit-outer-spin-button,
+.step-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.step-input:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(15,181,168,.12); }
+.step-input.error { border-color: var(--red); }
+.input-unit {
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 14px; color: var(--muted); pointer-events: none;
+}
+.input-error { margin-top: 8px; font-size: 13px; color: var(--red); display: none; }
+.input-error.show { display: block; }
+
+/* Temperature toggle */
+.temp-toggle-wrap {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 20px;
+  background: var(--deep);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px;
+}
+.temp-toggle-label { font-size: 13px; color: var(--muted); flex: 1; }
+.temp-toggle-label strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }
+.toggle-switch {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 13px;
+}
+.toggle-unit {
+  padding: 6px 12px; border-radius: 7px;
+  cursor: pointer; transition: all .2s; font-weight: 700;
+  border: 1px solid transparent;
+}
+.toggle-unit.active {
+  background: rgba(15,181,168,.2);
+  border-color: rgba(15,181,168,.4);
+  color: var(--teal2);
+}
+.toggle-unit.inactive { color: var(--muted); }
+.toggle-track {
+  width: 44px; height: 24px;
+  background: var(--border); border-radius: 99px;
+  cursor: pointer; position: relative;
+  transition: background .25s;
+}
+.toggle-track.on { background: linear-gradient(135deg, var(--teal), var(--blue)); }
+.toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff;
+  position: absolute; top: 3px; left: 3px;
+  transition: left .25s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.toggle-track.on .toggle-thumb { left: 23px; }
+.temp-hint {
+  margin-top: 10px;
+  font-size: 12px; color: var(--muted);
+  font-family: var(--mono);
+  text-align: center;
+}
+
+/* Buttons */
+.btn-row { display: flex; gap: 12px; margin-top: 32px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px; border-radius: 12px; border: none;
+  font-family: var(--sans); font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all .2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--teal), #0d9488);
+  color: #fff; box-shadow: 0 4px 20px rgba(15,181,168,.3); flex: 1;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(15,181,168,.4); }
+.btn-secondary { background: var(--deep); border: 1px solid var(--border); color: var(--muted); }
+.btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+
+/* Results */
+#results { display: none; animation: fadeUp .4s ease; }
+.result-header { text-align: center; padding: 40px 0 32px; }
+.result-header h2 { font-size: clamp(24px,5vw,34px); font-weight: 700; letter-spacing: -.5px; }
+.result-header p { color: var(--muted); margin-top: 8px; font-size: 14px; font-family: var(--mono); }
+
+.section-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 32px; margin-bottom: 20px;
+}
+.section-title {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--teal); font-family: var(--mono);
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section-icon {
+  width: 32px; height: 32px; background: rgba(15,181,168,.12);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+
+/* Summary table */
+.summary-table { width: 100%; border-collapse: collapse; }
+.summary-table th {
+  text-align: left; font-size: 11px; color: var(--muted);
+  font-family: var(--mono); letter-spacing: 1px;
+  padding: 0 12px 12px; border-bottom: 1px solid var(--border);
+}
+.summary-table td { padding: 12px; font-size: 14px; border-bottom: 1px solid rgba(30,48,80,.5); vertical-align: middle; }
+.summary-table tr:last-child td { border-bottom: none; }
+.param-name { font-weight: 600; }
+.param-en   { font-size: 11px; color: var(--muted); font-style: italic; }
+.param-abbr { font-family: var(--mono); font-size: 10px; color: rgba(107,133,168,.6); }
+.val-measured { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+.val-target { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  padding: 4px 10px; border-radius: 6px; font-family: var(--mono);
+}
+.badge-ok   { background: rgba(16,212,142,.15); color: var(--green);  border: 1px solid rgba(16,212,142,.3); }
+.badge-warn { background: rgba(251,191,36,.12);  color: var(--yellow); border: 1px solid rgba(251,191,36,.3); }
+.badge-crit { background: rgba(240,65,85,.12);   color: var(--red);    border: 1px solid rgba(240,65,85,.3); }
+
+/* Diagnosis */
+.diag-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(30,48,80,.5); align-items: flex-start; }
+.diag-item:last-child { border-bottom: none; }
+.diag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.diag-dot.ok   { background: var(--green); }
+.diag-dot.warn { background: var(--yellow); }
+.diag-dot.crit { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.diag-title { font-weight: 600; font-size: 14px; }
+.diag-body  { font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+/* Dose cards */
+.dose-grid { display: grid; gap: 14px; }
+.dose-card { background: var(--deep); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.dose-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+.dose-chemical { font-weight: 700; font-size: 15px; }
+.dose-direction { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 5px; font-weight: 700; }
+.dose-direction.raise { background: rgba(16,212,142,.15); color: var(--green); }
+.dose-direction.lower { background: rgba(240,65,85,.12); color: var(--red); }
+.dose-amounts { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.dose-amount {
+  background: rgba(15,181,168,.1); border: 1px solid rgba(15,181,168,.2);
+  border-radius: 8px; padding: 8px 14px;
+  font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--teal2);
+}
+.dose-amount small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.dose-note { margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.dose-warning {
+  margin-top: 10px; background: rgba(245,166,35,.1); border: 1px solid rgba(245,166,35,.25);
+  border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--amber);
+}
+
+/* Order list */
+.order-list { list-style: none; }
+.order-item { display: flex; gap: 16px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(30,48,80,.5); }
+.order-item:last-child { border-bottom: none; }
+.order-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(15,181,168,.15); border: 1px solid rgba(15,181,168,.3);
+  color: var(--teal); font-family: var(--mono); font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.order-content .order-title { font-weight: 600; font-size: 14px; }
+.order-content .order-desc  { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+.order-wait {
+  display: inline-block; margin-top: 6px;
+  background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.25);
+  border-radius: 5px; padding: 2px 10px;
+  font-family: var(--mono); font-size: 11px; color: #93c5fd;
+}
+
+/* Info boxes */
+.info-box { border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; font-size: 13px; line-height: 1.6; }
+.info-box-teal  { background: rgba(15,181,168,.08);  border: 1px solid rgba(15,181,168,.2);  color: #a7f3d0; }
+.info-box-amber { background: rgba(245,166,35,.08);  border: 1px solid rgba(245,166,35,.2);  color: #fde68a; }
+.info-box-red   { background: rgba(240,65,85,.08);   border: 1px solid rgba(240,65,85,.2);   color: #fca5a5; }
+.info-box-blue  { background: rgba(59,130,246,.08);  border: 1px solid rgba(59,130,246,.2);  color: #bfdbfe; }
+.info-box strong { font-weight: 700; display: block; margin-bottom: 4px; font-size: 13px; }
+
+/* Schedule */
+.sched-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 12px; }
+.sched-item { background: var(--deep); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.sched-param { font-weight: 700; font-size: 13px; }
+.sched-freq  { font-family: var(--mono); font-size: 12px; color: var(--teal); margin-top: 4px; }
+.sched-note  { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* CSI gauge */
+.csi-bar-wrap { margin: 18px 0; }
+.csi-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+.csi-track {
+  height: 12px; border-radius: 99px;
+  background: linear-gradient(to right,
+    #f04155 0%, #f04155 25%, #fbbf24 25%,
+    #0fb5a8 37.5%, #10d48e 50%, #0fb5a8 62.5%,
+    #fbbf24 75%, #f04155 75%, #f04155 100%);
+  position: relative;
+}
+.csi-needle {
+  position: absolute; top: -4px;
+  width: 4px; height: 20px; background: #fff;
+  border-radius: 2px; transform: translateX(-50%);
+  box-shadow: 0 0 6px rgba(255,255,255,.6);
+  transition: left .6s cubic-bezier(.4,0,.2,1);
+}
+
+/* Action buttons */
+.action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.btn-restart {
+  background: var(--deep); border: 1px solid var(--border); color: var(--muted);
+  padding: 12px 24px; border-radius: 10px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px;
+}
+.btn-restart:hover { border-color: var(--teal); color: var(--teal); }
+.btn-copy {
+  background: rgba(15,181,168,.15); border: 1px solid rgba(15,181,168,.3); color: var(--teal2);
+  padding: 12px 24px; border-radius: 10px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px;
+}
+.btn-copy:hover { background: rgba(15,181,168,.25); }
+
+.all-good { text-align: center; padding: 32px; color: var(--green); }
+.all-good-icon { font-size: 48px; margin-bottom: 12px; }
+.all-good h3 { font-size: 20px; font-weight: 700; }
+.all-good p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+.disclaimer {
+  text-align: center; font-size: 12px; color: var(--muted);
+  margin-top: 40px; line-height: 1.6; max-width: 600px; margin-inline: auto;
+}
+
+@media print {
+  body { background: #fff; color: #000; }
+  body::before { display: none; }
+  .action-row, .progress-wrap, #wizard, .header { display: none !important; }
+  .section-card { border: 1px solid #ccc; page-break-inside: avoid; }
+}
+@media (max-width:600px) {
+  .wizard-card { padding: 24px 20px; }
+  .section-card { padding: 20px 18px; }
+  .summary-table { font-size: 12px; }
+  .summary-table td, .summary-table th { padding: 8px 5px; }
+  .header-badge { display: none; }
+  .temp-toggle-wrap { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+<div class="app-wrap">
+
+  <header class="header">
+    <div class="header-icon">🏊</div>
+    <div>
+      <div class="header-title">PoolChem Pro</div>
+      <div class="header-sub">Circupool RJ45 · Superficie Pebble · 15,000 gal</div>
+    </div>
+    <div class="header-badge">CALCULADORA SWG</div>
+  </header>
+
+  <!-- WIZARD -->
+  <div id="wizard">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="prog-label">Paso 1 de 10</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+      </div>
+      <div class="steps-dots" id="dots-row"></div>
+    </div>
+    <div class="wizard-card" id="step-card"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="result-header">
+      <h2>Informe de Química del Agua</h2>
+      <p id="result-subtitle">Análisis para tu piscina pebble de 15,000 galones</p>
+    </div>
+    <div id="results-body"></div>
+    <div class="action-row">
+      <button class="btn-restart" onclick="restartWizard()">↺ Empezar de nuevo</button>
+      <button class="btn-copy" onclick="copySummary()">⎘ Copiar resumen</button>
+      <button class="btn-restart" onclick="window.print()">🖨 Imprimir informe</button>
+    </div>
+    <p class="disclaimer">
+      PoolChem Pro proporciona estimaciones con fines educativos y de planificación.<br>
+      Siempre verifica con un profesional certificado antes de realizar ajustes críticos.<br>
+      Las dosis pueden variar según la concentración del producto y las condiciones de la piscina.
+    </p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════
+let currentStep = 0;
+let tempUnit = 'F'; // 'F' or 'C'
+const values = {};
+
+// ═══════════════════════════════════════════════════════
+//  DEFINICIÓN DE PASOS
+// ═══════════════════════════════════════════════════════
+const STEPS = [
+  {
+    es: 'Volumen de la piscina',
+    en: 'Pool Volume',
+    abbr: 'VOL',
+    unit: 'gal',
+    desc: 'Volumen total de agua de tu piscina en galones estadounidenses. Afecta proporcionalmente todos los cálculos de dosificación.',
+    rangeText: 'Tu piscina: <span>15,000 gal</span> (valor por defecto)',
+    default: 15000, min: 1000, max: 100000, integer: true, key: 'vol',
+  },
+  {
+    es: 'Temperatura del agua',
+    en: 'Water Temperature',
+    abbr: 'TEMP',
+    unit: '°F',
+    desc: 'Temperatura actual del agua de la piscina. Se utiliza para calcular el Índice de Saturación de Calcio (CSI), que determina el riesgo de corrosión o incrustaciones en la superficie pebble y en la celda del clorinador.',
+    rangeText: 'Rango típico: <span>60–95°F / 16–35°C</span>',
+    default: '', min: 32, max: 110, step: 0.1, key: 'temp',
+    isTempStep: true,
+  },
+  {
+    es: 'pH',
+    en: 'pH',
+    abbr: 'pH',
+    unit: '',
+    desc: 'Medida de acidez/alcalinidad del agua. Controla la efectividad del cloro y el confort de los bañistas. Los sistemas SWG tienden a elevar el pH con el tiempo por electrólisis. pH bajo corroe la superficie pebble; pH alto reduce drásticamente la eficacia del cloro.',
+    rangeText: 'Objetivo: <span>7.6</span> — Rango aceptable: 7.2 – 7.8',
+    default: '', min: 6.0, max: 9.0, step: 0.1, key: 'ph',
+  },
+  {
+    es: 'Alcalinidad Total',
+    en: 'Total Alkalinity',
+    abbr: 'TA',
+    unit: 'ppm',
+    desc: 'La Alcalinidad Total amortigua los cambios de pH y protege el aglomerante de cemento de la superficie pebble. Baja TA causa fluctuaciones bruscas de pH; TA alta impulsa el pH hacia arriba y promueve incrustaciones.',
+    rangeText: 'Objetivo (SWG): <span>65 ppm</span> — Rango: 60 – 80 ppm',
+    default: '', min: 0, max: 400, integer: true, key: 'ta',
+  },
+  {
+    es: 'Dureza Cálcica / Dureza Total',
+    en: 'Calcium Hardness / Total Hardness',
+    abbr: 'CH',
+    unit: 'ppm',
+    desc: 'La Dureza Cálcica evita que el agua blanda disuelva el calcio de la matriz pebble/cemento (grabado ácido). CRÍTICO para superficies pebble — niveles bajos de CH causan daños irreversibles.',
+    rangeText: 'Objetivo: <span>300 ppm</span> — Rango: 250 – 400 ppm  |  Mínimo crítico: 200 ppm',
+    default: '', min: 0, max: 1000, integer: true, key: 'ch',
+  },
+  {
+    es: 'Ácido Cianúrico / Estabilizador',
+    en: 'Cyanuric Acid / Stabilizer',
+    abbr: 'CYA',
+    unit: 'ppm',
+    desc: 'El Ácido Cianúrico protege el Cloro Libre de la degradación por rayos UV. Esencial para piscinas SWG al aire libre. Un nivel demasiado alto reduce la efectividad del cloro (bloqueo de cloro); demasiado bajo y el cloro se destruye en 2 horas.',
+    rangeText: 'Objetivo (SWG): <span>70 – 80 ppm</span> — Rango: 60 – 90 ppm',
+    default: '', min: 0, max: 200, integer: true, key: 'cya',
+  },
+  {
+    es: 'Cloro Libre',
+    en: 'Free Chlorine',
+    abbr: 'FC',
+    unit: 'ppm',
+    desc: 'Cloro activo y disponible que desinfecta el agua. Debe ser proporcional al nivel de CYA (ver fórmula FC/CYA). El Circupool RJ45 es tu fuente principal de cloro libre.',
+    rangeText: 'Objetivo: <span>≥ CYA × 7.5%</span>  (ej. 5–7 ppm con CYA en 70–80)',
+    default: '', min: 0, max: 30, step: 0.1, key: 'fc',
+  },
+  {
+    es: 'Cloro Total',
+    en: 'Total Chlorine',
+    abbr: 'TC',
+    unit: 'ppm',
+    desc: 'Cloro Total = Cloro Libre + Cloro Combinado. La diferencia (TC − FC) revela el Cloro Combinado (cloraminas), responsable del olor a cloro y la irritación ocular. El TC debería ser igual al FC en una piscina bien mantenida.',
+    rangeText: 'TC debería ser igual a FC. Si TC > FC + 0.5 ppm, puede ser necesario un SLAM.',
+    default: '', min: 0, max: 30, step: 0.1, key: 'tc',
+  },
+  {
+    es: 'Sal / Salinidad',
+    en: 'Salt / Salinity',
+    abbr: 'SAL',
+    unit: 'ppm',
+    desc: 'Nivel de sal para el funcionamiento del Circupool RJ45. Debe mantenerse dentro del rango operativo para que la celda genere cloro. Por debajo del mínimo el SWG se apaga; por encima del máximo hay riesgo de corrosión.',
+    rangeText: 'Objetivo: <span>3,200 – 3,500 ppm</span> — Operativo: 3,000 – 4,000 ppm  |  SWG se apaga por debajo de ~2,700 ppm',
+    default: '', min: 0, max: 6000, integer: true, key: 'salt',
+  },
+  {
+    es: 'Bromo',
+    en: 'Bromine',
+    abbr: 'BR',
+    unit: 'ppm',
+    desc: 'El bromo es un desinfectante alternativo — no se usa en piscinas de agua salada. Ingresa tu lectura como referencia (debería ser 0 en una piscina con clorinador de sal).',
+    rangeText: 'Valor esperado: <span>0 ppm</span> en piscinas SWG. Solo informativo.',
+    default: 0, min: 0, max: 20, step: 0.1, key: 'bromine',
+  },
+];
+
+// ═══════════════════════════════════════════════════════
+//  UTILIDADES
+// ═══════════════════════════════════════════════════════
+const r2 = n => Math.round(n * 100) / 100;
+const r1 = n => Math.round(n * 10) / 10;
+
+function cToF(c) { return c * 9/5 + 32; }
+function fToC(f) { return (f - 32) * 5/9; }
+
+// ═══════════════════════════════════════════════════════
+//  PROGRESS & DOTS
+// ═══════════════════════════════════════════════════════
+function initDots() {
+  const row = document.getElementById('dots-row');
+  row.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'step-dot';
+    d.id = `dot-${i}`;
+    row.appendChild(d);
+  });
+}
+
+function updateProgress(step) {
+  const pct = Math.round((step / STEPS.length) * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `Paso ${step + 1} de ${STEPS.length}`;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  STEPS.forEach((_, i) => {
+    const d = document.getElementById(`dot-${i}`);
+    if      (i < step)  d.className = 'step-dot done';
+    else if (i === step) d.className = 'step-dot active';
+    else                 d.className = 'step-dot';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER STEP
+// ═══════════════════════════════════════════════════════
+function renderStep(step) {
+  const s = STEPS[step];
+  const card = document.getElementById('step-card');
+
+  if (s.isTempStep) {
+    renderTempStep(s, step);
+    updateProgress(step);
+    return;
+  }
+
+  const storedVal = values[s.key] !== undefined ? values[s.key] : (s.default !== '' ? s.default : '');
+  const stepAttr = s.step ? `step="${s.step}"` : (s.integer ? 'step="1"' : 'step="any"');
+
+  card.innerHTML = `
+    <div class="step-number">PASO ${step + 1} DE ${STEPS.length}</div>
+    <div class="step-es">${s.es}</div>
+    <div class="step-en">${s.en}</div>
+    <div class="step-abbr">${s.abbr}</div>
+    <div class="step-desc">${s.desc}</div>
+    <div class="step-range">🎯 Objetivo — ${s.rangeText}</div>
+    <div class="input-wrap">
+      <input type="number" class="step-input" id="step-input"
+        min="${s.min}" max="${s.max}" ${stepAttr}
+        value="${storedVal}"
+        placeholder="${s.default !== '' ? s.default : '0'}"
+        autofocus oninput="clearError()">
+      ${s.unit ? `<div class="input-unit">${s.unit}</div>` : ''}
+      <div class="input-error" id="input-error"></div>
+    </div>
+    <div class="btn-row">
+      ${step > 0 ? `<button class="btn btn-secondary" onclick="goBack()">← Atrás</button>` : ''}
+      <button class="btn btn-primary" onclick="goNext()">
+        ${step < STEPS.length - 1 ? 'Siguiente →' : '🔬 Calcular resultados'}
+      </button>
+    </div>
+  `;
+  updateProgress(step);
+  setTimeout(() => document.getElementById('step-input')?.focus(), 50);
+  document.getElementById('step-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') goNext();
+  });
+}
+
+function renderTempStep(s, step) {
+  const card = document.getElementById('step-card');
+  const storedF = values['temp']; // always stored in °F
+  let displayVal = '';
+  if (storedF !== undefined) {
+    displayVal = tempUnit === 'F' ? r1(storedF) : r1(fToC(storedF));
+  }
+
+  const minDisplay = tempUnit === 'F' ? 32 : 0;
+  const maxDisplay = tempUnit === 'F' ? 110 : 43;
+  const unitLabel  = tempUnit === 'F' ? '°F' : '°C';
+  const hintConv   = tempUnit === 'F'
+    ? 'Rango típico: 60–95°F — Haz clic en °C para cambiar'
+    : 'Rango típico: 16–35°C — Haz clic en °F para cambiar';
+
+  card.innerHTML = `
+    <div class="step-number">PASO ${step + 1} DE ${STEPS.length}</div>
+    <div class="step-es">${s.es}</div>
+    <div class="step-en">${s.en}</div>
+    <div class="step-abbr">${s.abbr}</div>
+    <div class="step-desc">${s.desc}</div>
+    <div class="step-range">🎯 Objetivo — ${s.rangeText}</div>
+    <div class="input-wrap">
+      <input type="number" class="step-input" id="step-input"
+        min="${minDisplay}" max="${maxDisplay}" step="0.1"
+        value="${displayVal}"
+        placeholder="${tempUnit === 'F' ? '77' : '25'}"
+        autofocus oninput="clearError()">
+      <div class="input-unit" id="temp-unit-label">${unitLabel}</div>
+      <div class="input-error" id="input-error"></div>
+    </div>
+
+    <div class="temp-toggle-wrap">
+      <div class="temp-toggle-label">
+        <strong>Unidad de temperatura</strong>
+        Selecciona la escala que prefieras
+      </div>
+      <div class="toggle-switch">
+        <span class="toggle-unit ${tempUnit === 'F' ? 'active' : 'inactive'}" onclick="setTempUnit('F')">°F</span>
+        <div class="toggle-track ${tempUnit === 'C' ? 'on' : ''}" id="toggle-track" onclick="toggleTempUnit()">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span class="toggle-unit ${tempUnit === 'C' ? 'active' : 'inactive'}" onclick="setTempUnit('C')">°C</span>
+      </div>
+    </div>
+    <div class="temp-hint" id="temp-hint">${hintConv}</div>
+
+    <div class="btn-row">
+      ${step > 0 ? `<button class="btn btn-secondary" onclick="goBack()">← Atrás</button>` : ''}
+      <button class="btn btn-primary" onclick="goNext()">
+        ${step < STEPS.length - 1 ? 'Siguiente →' : '🔬 Calcular resultados'}
+      </button>
+    </div>
+  `;
+  updateProgress(step);
+  setTimeout(() => document.getElementById('step-input')?.focus(), 50);
+  document.getElementById('step-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') goNext();
+  });
+}
+
+// ── Temperature toggle ──
+function setTempUnit(unit) {
+  if (unit === tempUnit) return;
+  // Convert current input value if present
+  const inp = document.getElementById('step-input');
+  if (inp && inp.value !== '') {
+    const current = parseFloat(inp.value);
+    if (!isNaN(current)) {
+      // temporarily store as °F for conversion
+      const asF = tempUnit === 'F' ? current : cToF(current);
+      tempUnit = unit;
+      inp.value = r1(unit === 'F' ? asF : fToC(asF));
+    } else {
+      tempUnit = unit;
+    }
+  } else {
+    tempUnit = unit;
+  }
+  refreshTempUI();
+}
+
+function toggleTempUnit() {
+  setTempUnit(tempUnit === 'F' ? 'C' : 'F');
+}
+
+function refreshTempUI() {
+  const unitLabel = tempUnit === 'F' ? '°F' : '°C';
+  const hint = tempUnit === 'F'
+    ? 'Rango típico: 60–95°F — Haz clic en °C para cambiar'
+    : 'Rango típico: 16–35°C — Haz clic en °F para cambiar';
+
+  const track = document.getElementById('toggle-track');
+  const unitEl = document.getElementById('temp-unit-label');
+  const hintEl = document.getElementById('temp-hint');
+  const inp    = document.getElementById('step-input');
+
+  if (track)  { track.className = `toggle-track ${tempUnit === 'C' ? 'on' : ''}`; }
+  if (unitEl) { unitEl.textContent = unitLabel; }
+  if (hintEl) { hintEl.textContent = hint; }
+  if (inp)    {
+    inp.min = tempUnit === 'F' ? 32 : 0;
+    inp.max = tempUnit === 'F' ? 110 : 43;
+    inp.placeholder = tempUnit === 'F' ? '77' : '25';
+  }
+
+  // Update button labels
+  document.querySelectorAll('.toggle-unit').forEach(el => {
+    el.className = `toggle-unit ${el.textContent === (tempUnit === 'F' ? '°F' : '°C') ? 'active' : 'inactive'}`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function clearError() {
+  document.getElementById('input-error')?.classList.remove('show');
+  document.getElementById('step-input')?.classList.remove('error');
+}
+
+function showError(msg) {
+  const el = document.getElementById('input-error');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('step-input').classList.add('error');
+}
+
+function goNext() {
+  const s = STEPS[currentStep];
+  const input = document.getElementById('step-input');
+  const raw = input.value.trim();
+
+  if (raw === '') {
+    if (s.default !== '') {
+      values[s.key] = parseFloat(s.default);
+    } else {
+      showError('Por favor ingresa un valor para continuar.');
+      return;
+    }
+  } else {
+    const val = parseFloat(raw);
+    if (isNaN(val)) { showError('Por favor ingresa un número válido.'); return; }
+
+    if (s.isTempStep) {
+      const minD = tempUnit === 'F' ? 32 : 0;
+      const maxD = tempUnit === 'F' ? 110 : 43;
+      if (val < minD || val > maxD) {
+        showError(`El valor debe estar entre ${minD} y ${maxD} ${tempUnit === 'F' ? '°F' : '°C'}.`);
+        return;
+      }
+      // Always store in °F internally
+      values['temp'] = tempUnit === 'F' ? val : r1(cToF(val));
+      values['tempUnit'] = tempUnit;
+    } else {
+      if (val < s.min || val > s.max) {
+        showError(`El valor debe estar entre ${s.min} y ${s.max}.`);
+        return;
+      }
+      values[s.key] = val;
+    }
+  }
+
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    animateStep();
+  } else {
+    showResults();
+  }
+}
+
+function goBack() {
+  if (currentStep > 0) {
+    currentStep--;
+    animateStep();
+  }
+}
+
+function animateStep() {
+  const card = document.getElementById('step-card');
+  card.style.animation = 'none';
+  setTimeout(() => {
+    card.style.animation = '';
+    renderStep(currentStep);
+  }, 10);
+}
+
+// ═══════════════════════════════════════════════════════
+//  QUÍMICA
+// ═══════════════════════════════════════════════════════
+function calcTF(tempF) {
+  const table = [[32,0],[41,.1],[50,.2],[59,.3],[68,.4],[77,.5],[86,.6],[95,.7],[104,.8]];
+  if (tempF <= table[0][0]) return table[0][1];
+  if (tempF >= table[table.length-1][0]) return table[table.length-1][1];
+  for (let i=0;i<table.length-1;i++) {
+    if (tempF >= table[i][0] && tempF <= table[i+1][0]) {
+      const t = (tempF - table[i][0]) / (table[i+1][0] - table[i][0]);
+      return table[i][1] + t * (table[i+1][1] - table[i][1]);
+    }
+  }
+  return 0.5;
+}
+
+function calcCSI(ph, ch, ta, tempF) {
+  if (ch <= 0 || ta <= 0) return null;
+  return ph + Math.log10(ch) + Math.log10(ta) + calcTF(tempF) - 12.1;
+}
+
+function csiInfo(csi) {
+  if (csi === null) return { text:'N/D', cls:'warn' };
+  if (csi < -0.30) return { text:'CRÍTICO — Agua agresiva (riesgo de grabado en pebble)', cls:'crit' };
+  if (csi < -0.10) return { text:'BUENO — Levemente negativo (ideal para SWG)', cls:'ok' };
+  if (csi <= 0.10) return { text:'IDEAL — Equilibrado', cls:'ok' };
+  if (csi <= 0.30) return { text:'PRECAUCIÓN — Tendencia leve a incrustaciones', cls:'warn' };
+  return { text:'CRÍTICO — Agua incrustante (riesgo en celda del SWG)', cls:'crit' };
+}
+
+function csiNeedlePct(csi) {
+  if (csi === null) return 50;
+  return Math.max(2, Math.min(98, ((csi + 0.6) / 1.2) * 100));
+}
+
+const fcMin    = cya => cya * 0.075;
+const fcTarget = cya => cya * 0.090;
+
+// ── Dosificación ──
+function calcDoses(v) {
+  const scale = v.vol / 15000;
+  const doses = [];
+
+  // pH
+  if (v.ph < 7.2 || v.ph > 7.8) {
+    if (v.ph < 7.6) {
+      const delta = (7.6 - v.ph) / 0.2;
+      const oz = 9 * delta * scale;
+      doses.push({
+        param: 'pH', chemical: 'Carbonato de Sodio / Soda Ash (Na₂CO₃)',
+        direction:'raise',
+        imperial:`${r1(oz/16)} lbs (${Math.ceil(oz)} oz)`,
+        metric:`${Math.ceil(oz*28.35)} g`,
+        note:'Agregar en dosis divididas (máx. 1 lb por adición). Distribuir en el perímetro con la bomba en funcionamiento. Esperar 4 horas antes de volver a medir.',
+        warning: null
+      });
+    } else {
+      const delta = (v.ph - 7.6) / 0.2;
+      const fl = 48 * delta * scale;
+      doses.push({
+        param: 'pH', chemical: 'Ácido Muriático (HCl 31.45%)',
+        direction:'lower',
+        imperial:`${r1(fl/32)} qts (${Math.ceil(fl)} fl oz)`,
+        metric:`${Math.ceil(fl*29.57)} mL`,
+        note:'Pre-diluir 10:1 en un balde con agua de la piscina. Verter lentamente cerca de un difusor con la bomba funcionando. NO agregar al skimmer.',
+        warning:'⚠️ Nota Circupool RJ45: NO usar ácido seco (bisulfato de sodio). Sus subproductos pueden dañar la celda del SWG. Usar solo ácido muriático.'
+      });
+    }
+  }
+
+  // TA
+  if (v.ta < 60 || v.ta > 80) {
+    if (v.ta < 65) {
+      const lbs = ((65 - v.ta) / 10) * 2.25 * scale;
+      doses.push({
+        param: 'Alcalinidad Total', chemical: 'Bicarbonato de Sodio / Baking Soda (NaHCO₃)',
+        direction:'raise',
+        imperial:`${r1(lbs)} lbs (${Math.ceil(lbs*16)} oz)`,
+        metric:`${Math.ceil(lbs*453.6)} g`,
+        note:'Distribuir uniformemente por el perímetro de la piscina con la bomba en marcha. Dosis máxima: 5 lbs por adición. Esperar 4 horas y volver a medir antes de agregar más.',
+        warning: null
+      });
+    } else {
+      const q = ((v.ta - 65) / 12) * (48/32) * scale;
+      doses.push({
+        param: 'Alcalinidad Total', chemical: 'Ácido Muriático (HCl 31.45%)',
+        direction:'lower',
+        imperial:`${r1(q)} qts (${Math.ceil(q*32)} fl oz)`,
+        metric:`${Math.ceil(q*946)} mL`,
+        note:'Para bajar TA: apagar la bomba. Agregar ácido en la parte más profunda. Esperar 1 hora y luego reanudar la circulación. Este método reduce TA con mínimo efecto sobre el pH.',
+        warning:'⚠️ Nunca verter ácido directamente en el skimmer. Daña la celda del Circupool RJ45.'
+      });
+    }
+  }
+
+  // CH
+  if (v.ch < 250 || v.ch > 400) {
+    if (v.ch < 300) {
+      const oz = ((300 - v.ch) / 10) * 18 * scale;
+      doses.push({
+        param: 'Dureza Cálcica', chemical: 'Cloruro de Calcio (CaCl₂), granulado o en escamas',
+        direction:'raise',
+        imperial:`${r1(oz/16)} lbs (${Math.ceil(oz)} oz)`,
+        metric:`${Math.ceil(oz*28.35)} g`,
+        note:'⚠️ IMPORTANTE para superficie pebble: Pre-disolver en un balde de 5 gal con agua de la piscina. Agregar lentamente cerca de los difusores — NUNCA cerca de la celda del SWG. NO agregar el mismo día que el bicarbonato. Esperar 4–6 horas entre productos químicos.',
+        warning: v.ch < 200 ? '🚨 CRÍTICO: CH por debajo de 200 ppm — el agua agresiva está atacando activamente tu superficie pebble. Elevar la dureza cálcica DE INMEDIATO.' : null
+      });
+    } else {
+      const pct = Math.ceil(((v.ch - 350) / v.ch) * 100);
+      doses.push({
+        param: 'Dureza Cálcica', chemical: 'Vaciado y recarga parcial (para bajar CH)',
+        direction:'lower',
+        imperial:`Drenar y reemplazar ~${pct}% del agua de la piscina`,
+        metric:`Aprox. ${Math.ceil(v.vol * (pct/100) * 3.785)} litros`,
+        note:'La CH no puede reducirse químicamente. Vaciado/recarga parcial es el único método. Después de la recarga, medir y reequilibrar todos los parámetros.',
+        warning: null
+      });
+    }
+  }
+
+  // CYA
+  if (v.cya < 60 || v.cya > 90) {
+    if (v.cya < 70) {
+      const oz = ((75 - v.cya) / 10) * 19.5 * scale;
+      doses.push({
+        param: 'Ácido Cianúrico / Estabilizador', chemical: 'Ácido Cianúrico (CYA granulado, ~100%)',
+        direction:'raise',
+        imperial:`${r1(oz/16)} lbs (${Math.ceil(oz)} oz)`,
+        metric:`${Math.ceil(oz*28.35)} g`,
+        note:'MÉTODO: Colocar en una media o bolsa de malla. Colgar frente a un difusor de retorno. NO agregar directamente a la piscina ni al skimmer — el CYA concentrado puede decolorar/manchar la superficie pebble. Apagar el Circupool RJ45 mientras se disuelve. Revisar luego de 48–72 horas.',
+        warning: null
+      });
+    } else {
+      const pct = Math.ceil(((v.cya - 75) / v.cya) * 100);
+      doses.push({
+        param: 'Ácido Cianúrico / Estabilizador', chemical: 'Vaciado y recarga parcial (para bajar CYA)',
+        direction:'lower',
+        imperial:`Drenar y reemplazar ~${pct}% del agua`,
+        metric:`Aprox. ${Math.ceil(v.vol * (pct/100) * 3.785)} litros`,
+        note:'El CYA no puede eliminarse químicamente. Con CYA > 90 ppm la efectividad del cloro cae drásticamente — considerar vaciado parcial pronto.',
+        warning: null
+      });
+    }
+  }
+
+  // FC
+  const fMin = fcMin(v.cya);
+  if (v.fc < fMin) {
+    const delta = fcTarget(v.cya) - v.fc;
+    const q = (delta / 2) * 1.5 * scale;
+    doses.push({
+      param: 'Cloro Libre', chemical: 'Cloro Líquido / Hipoclorito de Sodio (10%)',
+      direction:'raise',
+      imperial:`${r1(q)} qts (${Math.ceil(q*32)} fl oz)`,
+      metric:`${Math.ceil(q*946)} mL`,
+      note:'Cloración suplementaria — el Circupool RJ45 es la fuente principal. Agregar cloro líquido al anochecer para evitar pérdidas por UV. Verter en el perímetro del extremo profundo con la bomba en marcha. Ajustar según la concentración del producto (8%, 10% o 12.5%).',
+      warning: null
+    });
+  }
+
+  // Salt
+  if (v.salt < 3000 || v.salt > 4000) {
+    if (v.salt < 3200) {
+      const lbs = ((3200 - v.salt) / 200) * 45 * scale;
+      doses.push({
+        param: 'Sal / Salinidad', chemical: 'Sal de piscina NaCl (pureza ≥99%, sin yodo, sin anti-aglomerantes)',
+        direction:'raise',
+        imperial:`${Math.ceil(lbs)} lbs`,
+        metric:`${Math.ceil(lbs*0.4536)} kg`,
+        note:'PROCEDIMIENTO: (1) Apagar el Circupool RJ45. (2) Distribuir la sal uniformemente por la superficie de la piscina, lejos del skimmer. (3) Cepillar la sal hacia el fondo para facilitar la disolución. (4) Circular la bomba durante 24 horas. (5) Medir la salinidad nuevamente. (6) Encender el SWG solo después de confirmar sal entre 3,000–4,000 ppm.',
+        warning: v.salt < 2700 ? '🚨 CRÍTICO: Sal por debajo de 2,700 ppm — el Circupool RJ45 NO está generando cloro. Agregar sal de inmediato.' : '⚠️ Sal por debajo del objetivo. Eficiencia del SWG reducida.'
+      });
+    } else {
+      const pct = Math.ceil(((v.salt - 3400) / v.salt) * 100);
+      doses.push({
+        param: 'Sal / Salinidad', chemical: 'Vaciado y recarga parcial (para bajar sal)',
+        direction:'lower',
+        imperial:`Drenar y reemplazar ~${pct}% del agua`,
+        metric:`Aprox. ${Math.ceil(v.vol * (pct/100) * 3.785)} litros`,
+        note:'La sal no puede eliminarse químicamente. Niveles altos aceleran la corrosión de equipos. Vaciado/recarga parcial con agua dulce es el único método de corrección.',
+        warning: null
+      });
+    }
+  }
+
+  return doses;
+}
+
+// ═══════════════════════════════════════════════════════
+//  MOSTRAR RESULTADOS
+// ═══════════════════════════════════════════════════════
+function showResults() {
+  document.getElementById('wizard').style.display = 'none';
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+
+  const v = values;
+  const cc     = Math.max(0, r2(v.tc - v.fc));
+  const csi    = calcCSI(v.ph, v.ch, v.ta, v.temp);
+  const csiL   = csiInfo(csi);
+  const fMin   = fcMin(v.cya);
+  const fTgt   = fcTarget(v.cya);
+  const doses  = calcDoses(v);
+  const tempC  = r1(fToC(v.temp));
+  const tempDispStr = `${v.temp}°F / ${tempC}°C`;
+
+  // Status
+  const phSt   = v.ph < 7.2 ? 'crit' : v.ph > 7.8 ? 'warn' : v.ph < 7.4 ? 'warn' : 'ok';
+  const taSt   = v.ta < 60  ? 'crit' : v.ta > 80  ? 'warn' : 'ok';
+  const chSt   = v.ch < 200 ? 'crit' : v.ch < 250 ? 'warn' : v.ch > 400 ? 'warn' : 'ok';
+  const cyaSt  = v.cya < 30 ? 'crit' : v.cya < 60 ? 'warn' : v.cya > 90 ? 'warn' : 'ok';
+  const fcSt   = v.fc < fMin ? 'crit' : v.fc < fTgt * 0.8 ? 'warn' : 'ok';
+  const ccSt   = cc > 0.5   ? 'crit' : cc > 0.2 ? 'warn' : 'ok';
+  const saltSt = v.salt < 2700 ? 'crit' : v.salt < 3000 ? 'warn' : v.salt > 4000 ? 'warn' : 'ok';
+  const csiSt  = csiL.cls;
+  const bromSt = v.bromine > 1 ? 'warn' : 'ok';
+
+  const stLabel = { ok:'✓ OK', warn:'⚠ PRECAUCIÓN', crit:'✗ CRÍTICO' };
+
+  // ── Tabla de resumen ──
+  const rows = [
+    { es:'pH',                         en:'pH',                 abbr:'pH',   val:v.ph,       unit:'',    target:'7.4 – 7.8',      st: phSt },
+    { es:'Alcalinidad Total',          en:'Total Alkalinity',   abbr:'TA',   val:v.ta,       unit:'ppm', target:'60 – 80',        st: taSt },
+    { es:'Dureza Cálcica',             en:'Calcium Hardness',   abbr:'CH',   val:v.ch,       unit:'ppm', target:'250 – 400',      st: chSt },
+    { es:'Ácido Cianúrico',            en:'Cyanuric Acid',      abbr:'CYA',  val:v.cya,      unit:'ppm', target:'60 – 90',        st: cyaSt },
+    { es:'Cloro Libre',                en:'Free Chlorine',      abbr:'FC',   val:v.fc,       unit:'ppm', target:`≥${r1(fMin)} ppm`, st: fcSt },
+    { es:'Cloro Combinado',            en:'Combined Chlorine',  abbr:'CC',   val:cc,         unit:'ppm', target:'0 – 0.5',        st: ccSt },
+    { es:'Sal / Salinidad',            en:'Salt / Salinity',    abbr:'SAL',  val:v.salt,     unit:'ppm', target:'3,000 – 4,000',  st: saltSt },
+    { es:'Bromo',                      en:'Bromine',            abbr:'BR',   val:v.bromine,  unit:'ppm', target:'0 (SWG)',        st: bromSt },
+    { es:'Temperatura del agua',       en:'Water Temperature',  abbr:'TEMP', val:tempDispStr, unit:'',   target:'16–35°C / 60–95°F', st: 'ok' },
+    { es:'CSI (calculado)',            en:'CSI (Calculated)',   abbr:'CSI',  val:csi !== null ? r2(csi) : 'N/D', unit:'', target:'-0.30 a +0.30', st: csiSt },
+  ];
+
+  const tableHTML = `
+    <table class="summary-table">
+      <thead><tr>
+        <th>PARÁMETRO</th><th>MEDIDO</th><th>RANGO OBJETIVO</th><th>ESTADO</th>
+      </tr></thead>
+      <tbody>${rows.map(r => `
+        <tr>
+          <td>
+            <div class="param-name">${r.es}</div>
+            <div class="param-en">${r.en}</div>
+            <div class="param-abbr">${r.abbr}</div>
+          </td>
+          <td class="val-measured">${r.val} <small style="font-size:11px;color:var(--muted)">${r.unit}</small></td>
+          <td class="val-target">${r.target}</td>
+          <td><span class="badge badge-${r.st}">${stLabel[r.st]}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+
+  const csiPct = csiNeedlePct(csi !== null ? csi : 0);
+  const csiBarHTML = `
+    <div class="csi-bar-wrap" style="margin-top:24px;">
+      <div style="font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:4px;">
+        ÍNDICE DE SATURACIÓN DE CALCIO (CSI): 
+        <strong style="color:var(--text)">${csi !== null ? r2(csi) : 'N/D'}</strong>
+        &nbsp;—&nbsp;
+        <span style="color:var(--${csiSt==='ok'?'green':csiSt==='warn'?'yellow':'red'})">${csiL.text}</span>
+      </div>
+      <div class="csi-labels">
+        <span>−0.6 (Grabado)</span><span>−0.3</span><span>0 (Ideal)</span><span>+0.3</span><span>+0.6 (Incrustación)</span>
+      </div>
+      <div class="csi-track"><div class="csi-needle" style="left:${csiPct}%"></div></div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--muted);">
+      Cloro libre mínimo requerido: <strong style="color:var(--text);font-family:var(--mono)">${r1(fMin)} ppm</strong>
+      &nbsp;|&nbsp;
+      FC objetivo: <strong style="color:var(--text);font-family:var(--mono)">${r1(fTgt)} ppm</strong>
+      &nbsp;|&nbsp;
+      Cloro Combinado (CC): <strong style="color:${cc>0.5?'var(--red)':'var(--text)'};font-family:var(--mono)">${cc} ppm</strong>
+    </div>
+  `;
+
+  // ── Diagnóstico ──
+  const diagItems = [];
+
+  if (phSt !== 'ok') {
+    diagItems.push({ level:phSt, title:`pH ${v.ph} — ${v.ph<7.2?'Demasiado bajo (corrosivo)':v.ph>7.8?'Demasiado alto (riesgo de incrustaciones)':'Bajo — elevar a 7.6'}`,
+      body: v.ph<7.2 ? 'El agua ácida corroe los equipos y puede grabar tu superficie pebble. Agregar Carbonato de Sodio (Soda Ash) para elevar el pH a 7.6.'
+                     : 'El pH alto reduce la efectividad del cloro hasta en un 60% y promueve incrustaciones de calcio en la celda del SWG. Agregar Ácido Muriático.' });
+  } else {
+    diagItems.push({ level:'ok', title:`pH ${v.ph} — Dentro del rango objetivo`,
+      body:'El pH está equilibrado. Monitorear cada 2–3 días ya que la electrólisis del SWG tiende a elevar el pH con el tiempo.' });
+  }
+
+  if (taSt !== 'ok') {
+    diagItems.push({ level:taSt, title:`Alcalinidad Total ${v.ta} ppm — ${v.ta<60?'Demasiado baja':'Demasiado alta'}`,
+      body: v.ta<60 ? 'TA baja causa inestabilidad de pH y aumenta el riesgo de grabado en la superficie pebble. Agregar Bicarbonato de Sodio.'
+                    : 'TA alta impulsa el pH hacia arriba y favorece las incrustaciones. Reducir con Ácido Muriático (método aeración). Las piscinas SWG se benefician con TA en el extremo inferior del rango (60–70 ppm).' });
+  } else {
+    diagItems.push({ level:'ok', title:`Alcalinidad Total ${v.ta} ppm — En rango`, body:'La TA proporciona un buen amortiguamiento del pH y protección de la superficie.' });
+  }
+
+  if (chSt === 'crit') {
+    diagItems.push({ level:'crit', title:`Dureza Cálcica ${v.ch} ppm — CRÍTICO (¡Riesgo de grabado en pebble!)`,
+      body:'CH por debajo de 200 ppm es crítico para superficies pebble. El agua con bajo calcio disuelve activamente el calcio de la matriz pebble/cemento, causando daños irreversibles. Elevar CH de inmediato con Cloruro de Calcio.' });
+  } else if (chSt === 'warn') {
+    diagItems.push({ level:'warn', title:`Dureza Cálcica ${v.ch} ppm — ${v.ch<250?'Por debajo del ideal para pebble':'Por encima del rango ideal'}`,
+      body: v.ch<250 ? 'Limítrofe bajo para protección de superficie pebble. Elevar a 250–350 ppm. Monitorear CSI cuidadosamente.'
+                     : 'CH alta aumenta el riesgo de incrustaciones. Monitorear CSI — si CSI > +0.30, considerar vaciado parcial.' });
+  } else {
+    diagItems.push({ level:'ok', title:`Dureza Cálcica ${v.ch} ppm — En rango`, body:'La CH está protegiendo tu superficie pebble de la erosión.' });
+  }
+
+  if (cyaSt !== 'ok') {
+    diagItems.push({ level:cyaSt, title:`CYA ${v.cya} ppm — ${v.cya<60?'Demasiado bajo':'Demasiado alto'}`,
+      body: v.cya<60 ? 'Estabilizador insuficiente. La radiación UV destruirá tu cloro libre en 2 horas. Elevar CYA con método de media/bolsa para evitar manchas en la superficie pebble.'
+                     : 'CYA superior a 90 ppm reduce significativamente la efectividad del cloro (bloqueo de cloro). El SWG debe producir mucho más cloro para compensar. Considerar vaciado y recarga parcial.' });
+  } else {
+    diagItems.push({ level:'ok', title:`CYA ${v.cya} ppm — En rango`, body:'Buen nivel de estabilizador para piscina SWG exterior. Protección UV adecuada.' });
+  }
+
+  if (fcSt === 'crit') {
+    diagItems.push({ level:'crit', title:`Cloro Libre ${v.fc} ppm — Por debajo del mínimo para CYA ${v.cya} ppm`,
+      body:`FC mínimo requerido con tu nivel de CYA: ${r1(fMin)} ppm. El FC actual es insuficiente para prevenir el crecimiento de algas. Aumentar el porcentaje de salida del Circupool RJ45 y/o agregar cloro líquido suplementario.` });
+  } else if (fcSt === 'warn') {
+    diagItems.push({ level:'warn', title:`Cloro Libre ${v.fc} ppm — Bajo para tu nivel de CYA`, body:'FC está por encima del mínimo pero debajo del óptimo. Considerar aumentar levemente el % de salida del RJ45.' });
+  } else {
+    diagItems.push({ level:'ok', title:`Cloro Libre ${v.fc} ppm — Adecuado`, body:'FC está dentro del rango recomendado para tu nivel de CYA.' });
+  }
+
+  if (ccSt !== 'ok') {
+    diagItems.push({ level:ccSt, title:`Cloro Combinado ${cc} ppm — Acumulación de cloraminas`,
+      body: cc>0.5 ? `CC > 0.5 ppm indica formación significativa de cloraminas (causa olor a cloro, irritación ocular). Puede ser necesario un proceso SLAM. Elevar FC al nivel SLAM (FC = CYA × 40%), mantener hasta que la pérdida nocturna sea < 1 ppm y CC < 0.5 ppm.`
+                   : 'Presencia leve de cloraminas. Asegurar FC adecuado y considerar operar el SWG a mayor salida temporalmente.' });
+  } else {
+    diagItems.push({ level:'ok', title:`Cloro Combinado ${cc} ppm — Sin cloraminas significativas`, body:'No se detecta acumulación relevante de cloraminas.' });
+  }
+
+  if (saltSt === 'crit') {
+    diagItems.push({ level:'crit', title:`Sal ${v.salt} ppm — CRÍTICO (SWG no está generando cloro)`,
+      body:'La sal está por debajo del umbral mínimo operativo del Circupool RJ45 (~2,700 ppm). La celda NO está generando cloro. Agregar sal de piscina de inmediato siguiendo el procedimiento SWG apagado.' });
+  } else if (saltSt === 'warn') {
+    diagItems.push({ level:'warn', title:`Sal ${v.salt} ppm — ${v.salt<3000?'Por debajo del rango objetivo':'Por encima del rango objetivo'}`,
+      body: v.salt<3000 ? 'La sal está dentro del rango operativo pero por debajo del ideal 3,000–3,500 ppm. Eficiencia del SWG reducida. Agregar sal para alcanzar ~3,200 ppm.'
+                        : 'Sal por encima de 4,000 ppm puede acelerar la corrosión de equipos. Se recomienda vaciado y recarga parcial.' });
+  } else {
+    diagItems.push({ level:'ok', title:`Sal ${v.salt} ppm — En rango para Circupool RJ45`, body:'Nivel de sal adecuado para generación óptima de cloro por el SWG.' });
+  }
+
+  diagItems.push({ level:csiSt, title:`CSI ${csi!==null?r2(csi):'N/D'} — ${csiL.text}`,
+    body: csiSt==='crit' && csi<-0.30 ? 'El agua agresiva está atacando tu superficie pebble y los equipos. Solución principal: elevar la dureza cálcica y/o subir levemente el pH. Para piscinas SWG, el CSI ideal es entre -0.10 y 0.00.'
+        : csiSt==='crit' && csi>0.30  ? 'Condiciones de incrustación. El carbonato de calcio puede depositarse en la celda de titanio del RJ45, reduciendo su eficiencia. Bajar el pH y/o reducir la TA.'
+        : 'El CSI está dentro del rango aceptable para tu superficie pebble y la protección de la celda del SWG.' });
+
+  if (v.bromine > 1) {
+    diagItems.push({ level:'warn', title:`Bromo ${v.bromine} ppm — Inesperado en piscina SWG`,
+      body:'El bromo debería ser 0 en una piscina con clorinador de sal. Si se detecta bromo, suspender el uso de tabletas de bromo y esperar a que se disipe. El bromo es incompatible con sistemas SWG.' });
+  }
+
+  // ── Dosificación HTML ──
+  const dosesHTML = doses.length === 0
+    ? `<div class="all-good"><div class="all-good-icon">✅</div><h3>¡Todos los parámetros están en rango!</h3><p>No se necesitan productos químicos en este momento.</p></div>`
+    : doses.map(d => `
+        <div class="dose-card">
+          <div class="dose-header">
+            <div>
+              <div class="dose-chemical">${d.chemical}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px;">Ajustando: ${d.param}</div>
+            </div>
+            <div class="dose-direction ${d.direction}">${d.direction==='raise'?'▲ SUBIR':'▼ BAJAR'}</div>
+          </div>
+          <div class="dose-amounts">
+            <div class="dose-amount">${d.imperial}<small>Imperial</small></div>
+            <div class="dose-amount">${d.metric}<small>Métrico</small></div>
+          </div>
+          <div class="dose-note">${d.note}</div>
+          ${d.warning ? `<div class="dose-warning">${d.warning}</div>` : ''}
+        </div>`).join('');
+
+  // ── Orden de aplicación ──
+  const needTA = doses.some(d=>d.param==='Alcalinidad Total');
+  const needPH = doses.some(d=>d.param==='pH');
+  const needCH = doses.some(d=>d.param==='Dureza Cálcica');
+  const needCYA= doses.some(d=>d.param==='Ácido Cianúrico / Estabilizador');
+  const needSalt=doses.some(d=>d.param==='Sal / Salinidad');
+  const needFC = doses.some(d=>d.param==='Cloro Libre');
+
+  const orderItems = [
+    { title:'pH y Alcalinidad Total', active:needPH||needTA,
+      desc: needPH||needTA ? 'Aplicar ajustes de pH y TA primero (son interdependientes). Si ambos necesitan ajuste, corregir la TA primero. Distribuir Bicarbonato de Sodio o Ácido Muriático con la bomba funcionando. Solo corregir el pH después de que la TA esté estable.' : '✓ No se requieren ajustes de pH ni TA.',
+      wait:'Esperar 4 horas entre cada ajuste. Volver a medir antes de continuar.' },
+    { title:'Dureza Cálcica', active:needCH,
+      desc: needCH ? 'Pre-disolver Cloruro de Calcio en un balde. Agregar a la piscina cerca de los difusores (nunca cerca de la celda SWG). No agregar el mismo día que el Bicarbonato de Sodio.' : '✓ No se requiere ajuste de CH.',
+      wait:'Esperar 4–6 horas. Volver a medir antes de continuar.' },
+    { title:'Ácido Cianúrico (método media/bolsa)', active:needCYA,
+      desc: needCYA ? 'Colocar los gránulos de CYA en una media de nylon. Colgar frente a un difusor de retorno. NO agregar directamente a la piscina ni al skimmer. Apagar el Circupool RJ45 mientras se disuelve.' : '✓ CYA dentro del rango.',
+      wait:'Esperar 48–72 horas para disolución completa. Volver a medir el CYA.' },
+    { title:'Adición de sal (si necesario)', active:needSalt,
+      desc: needSalt ? 'Apagar completamente el Circupool RJ45. Distribuir sal uniformemente por la superficie de la piscina (nunca en el skimmer). Cepillar la sal hacia el fondo. Circular la bomba continuamente.' : '✓ La sal está dentro del rango operativo.',
+      wait:'Circular 24 horas antes de encender el SWG. Verificar sal en 3,000–4,000 ppm.' },
+    { title:'Cloro libre (suplementario)', active:needFC,
+      desc: needFC ? 'Agregar cloro líquido (hipoclorito de sodio 10%) al anochecer para evitar pérdidas por UV. Verter en el perímetro del extremo profundo. La generación principal de FC es a través del Circupool RJ45 — ajustar el % de salida según sea necesario.' : '✓ El FC es adecuado para tu nivel de CYA.',
+      wait:'Volver a medir el FC después de 24 horas de operación del SWG.' },
+    { title:'Re-medición del panel completo', active:true,
+      desc:'Después de que todos los productos químicos hayan tenido tiempo de circular y estabilizarse, realizar un análisis completo del agua para verificar que todos los parámetros estén dentro del rango objetivo.',
+      wait:'Volver a medir todos los parámetros 24 horas después de la última adición química.' },
+    { title:'Recalcular el CSI', active:true,
+      desc:'Tras los ajustes, calcular nuevamente el Índice de Saturación de Calcio con los nuevos valores. Para superficie pebble: objetivo CSI entre -0.10 y +0.10 (levemente negativo preferible para proteger la celda del SWG).',
+      wait:'Continuo — calcular el CSI con cada análisis completo.' },
+  ];
+
+  const orderHTML = `<ol class="order-list">
+    ${orderItems.map((it,i) => `
+      <li class="order-item">
+        <div class="order-num" style="${it.active?'border-color:var(--teal);color:var(--teal)':'opacity:.4'}">${i+1}</div>
+        <div class="order-content">
+          <div class="order-title" style="${!it.active?'opacity:.5':''}">${it.title}</div>
+          <div class="order-desc">${it.desc}</div>
+          <div class="order-wait">${it.wait}</div>
+        </div>
+      </li>`).join('')}
+  </ol>`;
+
+  // ── Sección Pebble ──
+  const pebbleHTML = `
+    <div class="info-box info-box-teal"><strong>🪨 CH Mínimo para Superficie Pebble</strong>Mantener la Dureza Cálcica en un mínimo absoluto de 200 ppm en todo momento. Por debajo de este nivel, el agua con bajo calcio ataca y disuelve activamente la matriz de cemento que une las piedras, causando picaduras y grabado irreversible. Objetivo: 250–350 ppm.</div>
+    <div class="info-box info-box-blue"><strong>📊 CSI Óptimo para Pebble + SWG</strong>Objetivo CSI entre -0.10 y +0.10. Se prefiere levemente negativo (-0.10 a 0.00) para piscinas SWG ya que ayuda a prevenir incrustaciones en las placas de titanio del Circupool RJ45. Nunca permitir CSI por debajo de -0.30 (grabado de pebble) ni por encima de +0.30 (incrustación de celda) durante períodos prolongados.</div>
+    <div class="info-box info-box-teal"><strong>🧂 Alcalinidad Total para Protección de Superficie</strong>Mantener TA en el rango 60–80 ppm (óptimo SWG: 60–70 ppm). La TA amortigua las fluctuaciones de pH que pueden estresar el aglomerante pebble-cemento. Evitar TA por debajo de 60 ppm. Usar Bicarbonato de Sodio para elevar la TA.</div>
+    <div class="info-box info-box-amber"><strong>⚗️ Notas de Aplicación para Pebble</strong>Nunca permitir contacto directo del CYA concentrado con la superficie pebble — usar siempre el método de media/bolsa. Evitar ácido seco (bisulfato de sodio) — usar ácido muriático para ajustes de pH/TA. Pre-disolver el Cloruro de Calcio antes de agregar. Cepillar la superficie de la piscina a fondo después de tratamientos químicos intensivos.</div>
+    <div class="info-box info-box-amber"><strong>🕐 Piscina Pebble Nueva: Regla de los 30 Días</strong>Esperar un mínimo de 28–30 días después de la instalación del acabado pebble antes de agregar sal o activar el SWG. La sal en contacto con yeso sin curar puede causar manchas, incrustaciones o decoloración no cubiertas por la garantía. Cepillar la superficie dos veces al día durante el período de curado.</div>
+  `;
+
+  // ── Sección SWG ──
+  const swgHTML = `
+    <div class="info-box info-box-blue"><strong>🔵 Circupool RJ45 — Rango de Sal Óptimo</strong>Objetivo: 3,200 ppm. Rango aceptable: 3,000–4,000 ppm. El SWG deja de generar cloro por debajo de ~2,700 ppm. Usar NaCl de grado piscina (≥99% de pureza, sin yodo, sin anti-aglomerantes). Nunca agregar sal al skimmer — puede dañar la celda.</div>
+    <div class="info-box info-box-teal"><strong>↑ Advertencia de Deriva del pH</strong>La electrólisis del SWG produce iones hidróxido que elevan naturalmente el pH con el tiempo. Revisar el pH cada 2–3 días, especialmente en verano. Tener siempre Ácido Muriático disponible para correcciones menores regulares. Este es un comportamiento normal del SWG.</div>
+    <div class="info-box info-box-teal"><strong>🔧 Mantenimiento de la Celda</strong>Inspeccionar mensualmente las placas de titanio del RJ45 para detectar depósitos de calcio/minerales. Limpiar con ácido muriático diluido (proporción 1:10 en agua) cuando se observe incrustación. Verificar que la función de auto-limpieza por polaridad inversa esté activada. Mantener CSI levemente negativo para reducir la acumulación de escala entre limpiezas manuales.</div>
+    <div class="info-box info-box-amber"><strong>⚙️ Ajuste Estacional de la Salida del SWG</strong>Aumentar el % de salida del RJ45 durante: calor veraniego, cargas altas de bañistas, después de lluvias. Disminuir en: meses más fríos, menor uso. Si CYA > 90 ppm, se requiere una salida del SWG significativamente mayor — considerar vaciado parcial en su lugar. Monitorear el FC semanalmente para calibrar el % de salida correcto.</div>
+  `;
+
+  // ── Seguridad ──
+  const safetyHTML = `
+    <div class="info-box info-box-red"><strong>⚠️ Nunca Mezclar Productos Químicos</strong>Nunca combinar diferentes productos químicos para piscinas entre sí — agregar cada uno al agua de la piscina por separado. La mezcla de cloro con ácido produce gas de cloro tóxico. Siempre agregar los ácidos al agua, nunca el agua al ácido.</div>
+    <div class="info-box info-box-red"><strong>🚫 Prohibición del Skimmer</strong>NUNCA agregar ácido muriático, cloruro de calcio ni ningún producto químico concentrado al skimmer. Esto puede corroer y destruir la celda del Circupool RJ45. Siempre agregar directamente al agua de la piscina.</div>
+    <div class="info-box info-box-amber"><strong>🧤 Protección Personal</strong>Usar siempre guantes resistentes a productos químicos y gafas de seguridad al manipular ácido muriático, cloruro de calcio y agentes oxidantes. Trabajar en un área bien ventilada. Guardar los productos en sus envases originales, por separado, en un lugar fresco y seco, alejado del calor y la humedad.</div>
+    <div class="info-box info-box-amber"><strong>⏱️ Reglas de Tiempo</strong>Nunca agregar cloruro de calcio y bicarbonato de sodio el mismo día — la reacción química puede enturbia severamente el agua y crear depósitos difíciles de eliminar. Agregar productos químicos con la bomba en marcha (esperar mínimo 30 minutos entre productos diferentes).</div>
+    <div class="info-box info-box-red"><strong>🧂 Protocolo Sal + SWG</strong>Apagar completamente el Circupool RJ45 antes de agregar sal. Solo reiniciar el SWG después de que 24 horas de circulación hayan confirmado una distribución uniforme de la sal dentro del rango objetivo (3,000–4,000 ppm).</div>
+  `;
+
+  // ── Calendario de medición ──
+  const scheduleHTML = `
+    <div class="sched-grid">
+      <div class="sched-item"><div class="sched-param">pH</div><div class="sched-freq">Cada 2–3 días</div><div class="sched-note">La electrólisis del SWG eleva el pH continuamente. El parámetro más importante a monitorear con frecuencia.</div></div>
+      <div class="sched-item"><div class="sched-param">Cloro Libre (FC)</div><div class="sched-freq">Cada 3–5 días</div><div class="sched-note">Verificar que el SWG genera FC adecuado para tu nivel de CYA. Ajustar el % de salida según sea necesario.</div></div>
+      <div class="sched-item"><div class="sched-param">Sal</div><div class="sched-freq">Semanal (2 semanas), luego cada 2 semanas</div><div class="sched-note">La evaporación sube la sal; la lluvia y el salpicado la bajan. Verificar antes de ajustar la salida del SWG.</div></div>
+      <div class="sched-item"><div class="sched-param">Panel Completo</div><div class="sched-freq">Cada 2 semanas</div><div class="sched-note">Todos los parámetros: pH, FC, TC, TA, CH, CYA, Sal. Calcular CSI. Revisar Cloro Combinado.</div></div>
+      <div class="sched-item"><div class="sched-param">Tras uso intenso / lluvia</div><div class="sched-freq">Dentro de las 24 horas</div><div class="sched-note">Medir pH y FC inmediatamente después de fiestas o lluvias intensas. La carga orgánica y la dilución pueden causar desequilibrio rápido.</div></div>
+      <div class="sched-item"><div class="sched-param">Ácido Cianúrico (CYA)</div><div class="sched-freq">Mensual</div><div class="sched-note">El CYA se acumula lentamente. Los cambios significativos solo ocurren tras grandes adiciones de agua o vaciados parciales.</div></div>
+      <div class="sched-item"><div class="sched-param">Dureza Cálcica (CH)</div><div class="sched-freq">Mensual</div><div class="sched-note">La CH sube lentamente por evaporación. Crítico para la superficie pebble — nunca permitir que baje de 200 ppm.</div></div>
+      <div class="sched-item"><div class="sched-param">Cálculo del CSI</div><div class="sched-freq">Cada panel completo</div><div class="sched-note">Calcular el CSI siempre que tengas datos del panel completo. Objetivo: -0.10 a +0.10 para pebble + SWG.</div></div>
+      <div class="sched-item"><div class="sched-param">Inspección de la celda SWG</div><div class="sched-freq">Mensual</div><div class="sched-note">Revisar las placas de titanio para detectar incrustaciones de calcio. Limpiar si es necesario con ácido muriático diluido (1:10).</div></div>
+    </div>
+  `;
+
+  // ── ENSAMBLAR RESULTADO ──
+  document.getElementById('results-body').innerHTML = `
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">📊</div>A — RESUMEN DEL AGUA</div>
+      ${tableHTML}${csiBarHTML}
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">🔍</div>B — DIAGNÓSTICO Y PLAN DE ACCIÓN</div>
+      <div>${diagItems.map(d=>`
+        <div class="diag-item">
+          <div class="diag-dot ${d.level}"></div>
+          <div><div class="diag-title">${d.title}</div><div class="diag-body">${d.body}</div></div>
+        </div>`).join('')}</div>
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">⚗️</div>C — DOSIS RECOMENDADAS</div>
+      <div class="dose-grid">${dosesHTML}</div>
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">📋</div>D — ORDEN DE APLICACIÓN Y TIEMPOS DE ESPERA</div>
+      ${orderHTML}
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">🪨</div>E — PROTECCIÓN DE SUPERFICIE PEBBLE</div>
+      ${pebbleHTML}
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">⚡</div>F — NOTAS CIRCUPOOL RJ45 SWG</div>
+      ${swgHTML}
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">🛡️</div>G — ADVERTENCIAS DE SEGURIDAD</div>
+      ${safetyHTML}
+    </div>
+    <div class="section-card">
+      <div class="section-title"><div class="section-icon">📅</div>H — CALENDARIO DE MEDICIONES</div>
+      ${scheduleHTML}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════
+//  COPIAR RESUMEN
+// ═══════════════════════════════════════════════════════
+function copySummary() {
+  const v = values;
+  const cc  = Math.max(0, r2(v.tc - v.fc));
+  const csi = calcCSI(v.ph, v.ch, v.ta, v.temp);
+  const doses = calcDoses(v);
+  let txt = `POOLCHEM PRO — Informe de Química del Agua\n`;
+  txt += `Circupool RJ45 | Pebble | ${v.vol} gal\n`;
+  txt += `${'─'.repeat(45)}\n`;
+  txt += `pH:                    ${v.ph}    [objetivo: 7.4–7.8]\n`;
+  txt += `Alcalinidad Total:     ${v.ta} ppm  [objetivo: 60–80]\n`;
+  txt += `Dureza Cálcica:        ${v.ch} ppm  [objetivo: 250–400]\n`;
+  txt += `Ácido Cianúrico:       ${v.cya} ppm  [objetivo: 60–90]\n`;
+  txt += `Cloro Libre:           ${v.fc} ppm  [mín: ${r1(fcMin(v.cya))}]\n`;
+  txt += `Cloro Combinado:       ${cc} ppm  [máx: 0.5]\n`;
+  txt += `Sal:                   ${v.salt} ppm [objetivo: 3000–4000]\n`;
+  txt += `Temperatura:           ${v.temp}°F / ${r1(fToC(v.temp))}°C\n`;
+  txt += `CSI (calculado):       ${csi !== null ? r2(csi) : 'N/D'}  [objetivo: -0.30 a +0.30]\n`;
+  txt += `${'─'.repeat(45)}\n`;
+  if (doses.length === 0) {
+    txt += `ESTADO: Todos los parámetros dentro del rango objetivo. No se requieren adiciones.\n`;
+  } else {
+    txt += `ADICIONES REQUERIDAS:\n`;
+    doses.forEach(d => {
+      txt += `• ${d.param}: ${d.chemical}\n  ${d.direction === 'raise' ? 'SUBIR' : 'BAJAR'} → ${d.imperial} / ${d.metric}\n`;
+    });
+  }
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✓ ¡Copiado!';
+    setTimeout(() => btn.innerHTML = '⎘ Copiar resumen', 2000);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  REINICIAR
+// ═══════════════════════════════════════════════════════
+function restartWizard() {
+  currentStep = 0;
+  tempUnit = 'F';
+  Object.keys(values).forEach(k => delete values[k]);
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('wizard').style.display = 'block';
+  renderStep(0);
+}
+
+// ═══════════════════════════════════════════════════════
+//  INICIO
+// ═══════════════════════════════════════════════════════
+initDots();
+renderStep(0);
+</script>
+</body>
+</html>
